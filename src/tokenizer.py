@@ -1,4 +1,9 @@
-from libraries import *
+import os
+import json
+from typing import List, Dict, Tuple
+from collections import defaultdict
+from tqdm import tqdm
+from transformers import AutoTokenizer
 
 class CustomBPETokenizer:
     def __init__(self, pre_tokenizer_name: str = "gpt2"):
@@ -73,8 +78,12 @@ class CustomBPETokenizer:
         self.merges = {(p[0], p[1]): p[2] for p in data["merges"]}
         print(f"Tokenizer state loaded from {file_path}. Vocabulary size: {len(self.vocab)}")
 
-    def train(self, corpus: List[str], vocab_size: int = 12000, save_path: str = "tokenizer_state.json"):
+    def train(self, corpus: List[str], vocab_size: int = 12000, save_path: str = None):
         """Learns the BPE merges from a given text corpus and auto-saves the result."""
+        if save_path is None:
+            from pathlib import Path
+            save_path = str(Path(__file__).parent.parent / "data" / "models" / "tokenizer_state.json")
+        
         print("Extracting word frequencies and base alphabet...")
         word_freqs = self._get_word_frequencies(corpus)
         alphabets = self._get_alphabet(word_freqs)
