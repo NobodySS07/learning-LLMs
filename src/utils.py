@@ -6,17 +6,20 @@ from typing import List, Dict, Tuple
 from datasets import load_dataset
 from transformers import AutoTokenizer
 
+# In src/utils.py
 def normalize_review(example):
-    """Normalize IMDB review text"""
+    """Normalize IMDB review text while preserving key punctuation"""
     text = example["text"]
     text = re.sub(r"<br\s*/>", " ", text)
     text = re.sub(r"<[^>]+>", " ", text)
     text = text.lower()
-    text = re.sub(r"[^\w\s]", " ", text)
+    
+    # Keep alphanumeric, spaces, and common punctuation
+    text = re.sub(r"[^\w\s.,!?'\-]", " ", text)
+    
     text = re.sub(r"\s+", " ", text).strip()
     example["text"] = text
     return example
-
 def get_word_frequencies(corpus: List[str], backend_tokenizer) -> Dict[str, int]:
     """Extract word frequencies from corpus"""
     word_frequencies = defaultdict(int)

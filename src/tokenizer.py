@@ -155,7 +155,7 @@ class CustomBPETokenizer:
     
         tokens = self.tokenize(text.lower())
  
-        self._build_mapping()
+        self._build_mapping() 
 
         unk_id = self.token_to_id.get("<|endoftext|>", 0)
 
