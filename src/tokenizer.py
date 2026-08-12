@@ -142,3 +142,29 @@ class CustomBPETokenizer:
                 splits[idx] = split
 
         return sum(splits, [])
+
+    def _build_mapping(self):
+        """Creates a fast lookup dictionary for O(1) token-to-ID conversion."""
+        # Only build it if it doesn't exist or if the vocab has grown
+        if not hasattr(self, "token_to_id") or len(self.token_to_id) != len(self.vocab):
+            self.token_to_id = {token: idx for idx, token in enumerate(self.vocab)}
+            self.id_to_token = {idx: token for idx, token in enumerate(self.vocab)}
+
+    def encode(self, text: str) -> List[int]:
+        """Converts raw text directly into a list of integer IDs for PyTorch."""
+    
+        tokens = self.tokenize(text.lower())
+ 
+        self._build_mapping()
+
+        unk_id = self.token_to_id.get("<|endoftext|>", 0)
+
+        input_ids = [self.token_to_id.get(token, unk_id) for token in tokens]
+        
+        return input_ids
+
+    def decode(self, ids: List[int]) -> str:
+        """Converts integer IDs back into readable text."""
+        self._build_mapping()
+        tokens = [self.id_to_token.get(idx, "") for idx in ids]
+        return "".join(tokens).replace("Ġ", " ")
