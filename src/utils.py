@@ -10,14 +10,17 @@ from transformers import AutoTokenizer
 def normalize_review(example):
     """Normalize IMDB review text while preserving key punctuation"""
     text = example["text"]
-    text = re.sub(r"<br\s*/>", " ", text)
+    
+    text = re.sub(r"<br\s*/?>", " ", text)
     text = re.sub(r"<[^>]+>", " ", text)
+    
     text = text.lower()
     
-    # Keep alphanumeric, spaces, and common punctuation
-    text = re.sub(r"[^\w\s.,!?'\-]", " ", text)
+    allowed_chars = r"[^\w\s!\"#$%&'()*+,\-./:;<=>?@\[\\\]^_`{|}~]"
+    text = re.sub(allowed_chars, " ", text)
     
     text = re.sub(r"\s+", " ", text).strip()
+
     example["text"] = text
     return example
 def get_word_frequencies(corpus: List[str], backend_tokenizer) -> Dict[str, int]:

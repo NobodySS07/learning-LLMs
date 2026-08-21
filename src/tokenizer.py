@@ -12,7 +12,7 @@ class CustomBPETokenizer:
         
         self.vocab: List[str] = []
         self.merges: Dict[Tuple[str, str], str] = {}
-        self.special_tokens = ["<|endoftext|>"]
+        self.special_tokens = ["[PAD]", "[UNK]", "[CLS]", "<|endoftext|>"]
 
     def _get_word_frequencies(self, corpus: List[str]) -> Dict[str, int]:
         word_frequencies = defaultdict(int)
@@ -150,17 +150,23 @@ class CustomBPETokenizer:
             self.token_to_id = {token: idx for idx, token in enumerate(self.vocab)}
             self.id_to_token = {idx: token for idx, token in enumerate(self.vocab)}
 
-    def encode(self, text: str) -> List[int]:
+    def encode(self, text: str, max_length: int = 1024) -> List[int]:
         """Converts raw text directly into a list of integer IDs for PyTorch."""
     
         tokens = self.tokenize(text.lower())
+        # print(tokens)
  
         self._build_mapping() 
 
-        unk_id = self.token_to_id.get("<|endoftext|>", 0)
+        unk_id = self.token_to_id.get("[UNK]", 0)
+        cls_id = self.token_to_id.get("[CLS]", 0)
 
         input_ids = [self.token_to_id.get(token, unk_id) for token in tokens]
-        
+        input_ids = [cls_id] + input_ids
+        if max_length is not None:
+            input_ids = input_ids[:max_length]  
+        if len(input_ids) < max_length:
+            input_ids += [self.token_to_id.get("[PAD]", 0)] * (max_length - len(input_ids))
         return input_ids
 
     def decode(self, ids: List[int]) -> str:
